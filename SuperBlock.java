@@ -2,7 +2,7 @@
  * Created by Phuc (Billy) Huynh on 5/31/2019
  */
 
-public class Superblock {
+public class SuperBlock {
 
     private final static int DEFAULT_INODE_BLOCKS = 64;
     private final static short END_OF_LIST = -1;
@@ -16,7 +16,7 @@ public class Superblock {
      * sets the disk info as a whole If
      * current formatting does not match, reformat
      */
-    public Superblock(int diskSize) {
+    public SuperbBlock(int diskSize) {
         // get the per block size from disk (which is 512)
         byte superBlock[] = new byte[Disk.blockSize];
         // read block 0 from disk, and store it into superBlock buff
