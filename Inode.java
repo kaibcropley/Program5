@@ -1,7 +1,17 @@
 /**
- * Created by Phuc (Billy) Huynh on 5/31/2019
+ *  Created by Phuc (billy) Huynh on 6/1/09
+ *  Starting from the blocks after the superblock, will be the inode blocks.
+ *  Each inode describes ONE file, and is 32 bytes
+ *
+ *  It includes 12 pointers of the index block.
+ *  The FIRST 11 of these pointers point to DIRECT blocks.
+ *  the LAST pointer points to an INDIRECT block
+ *  16 inodes can be stored in ONE block
+ *  Each inode muse include:
+ *  1. the length of the corresponding file
+ *  2. the number of file (structure) table entries that point to this inode
+ *  3. the flags indicate (self determined)
  */
-
 public class Inode {
 
     // Initializing variables
@@ -84,7 +94,7 @@ public class Inode {
     /**
      *  return indirect pointer
      */
-    public short getIndexBlockNumber() {
+    public short findIndexBlockNumber() {
         return this.indirect;
     }
 
@@ -93,7 +103,7 @@ public class Inode {
      * Return false if not all direct poitners are used or
      * if indirect pointer is used else, true
      */
-    public boolean setIndexBlock(short indexBlockNumber) {
+    public boolean registerIndexBlock(short indexBlockNumber) {
         // check if all direct pointers are used
         for(int i = 0; i < directSize; i++) {
             if(this.direct[i] == -1) {
@@ -121,65 +131,68 @@ public class Inode {
     /**
      *  Return the block given the offset
      */
-    public short findTargetBlock(int offset) {
-        int blockNumber = offset/Disk.blockSize;
+    public int findTargetBlock(int offset) {
+        int var1 = offset / Disk.blockSize;
+        if (var1 < 11) {
+            return this.direct[var1];
+        } else if (this.indirect < 0) {
+            return -1;
+        } else {
+            byte[] var2 = new byte[Disk.blockSize];
+            SysLib.rawread(this.indirect, var2);
+            int var3 = var1 - 11;
+            return SysLib.bytes2short(var2, var3 * 2);
+        }
+    }
 
-        if(blockNumber >= directSize) {
-            if(this.indirect == -1) {
+    /**
+     * Sets the data in the block at the given blockNumber to the inode found at
+     * the given offset.
+     * Return 0 if the block is registered successfully,
+     */
+
+    public int registerTargetBlock(int offset, short blockNumber)
+    {
+        int blockPosition = offset / Disk.blockSize;
+        if (blockPosition < 11)
+        {
+            if (this.direct[blockPosition] != -1)
+            {
                 return -1;
             }
-            // read from the indirect block to gain access to pointers
-            byte buffer[] = new byte[Disk.blockSize];
-            SysLib.rawread(this.indirect, buffer);
-            // traverse the index block
-            int offsetLeft = (blockNumber - directSize) * 2;
+            if (blockPosition > 0 && this.direct[blockPosition - 1] == -1)
+            {
+                return -2;
+            }
 
-            return SysLib.bytes2short(buffer, offsetLeft);
+            this.direct[blockPosition] = blockNumber;
+            return 0;
         }
-        else {
-            return this.direct[blockNumber];
+     else if (this.indirect < 0) {
+            return -3;
+        } else {
+            byte[] block = new byte[Disk.blockSize];
+            SysLib.rawread(this.indirect, block);
+            int var5 = blockPosition - 11;
+            if (SysLib.bytes2short(block, var5 * 2) > 0) {
+                SysLib.cerr("indexBlock, indirectNumber = " + var5 + " contents = " + SysLib.bytes2short(block, var5 * 2) + "\n");
+                return -1;
+            } else {
+                SysLib.short2bytes(blockNumber, block, var5 * 2);
+                SysLib.rawwrite(this.indirect, block);
+                return 0;
+            }
         }
     }
 
-    /**
-     * Sets the blockNumber to a free direct or indirect pointer
-     * and return true if assigned, false indicating out of space
-     */
-    public boolean setDirectPointers(short blockNumber) {
-        if(blockNumber == -1) {  // we ran out of free blocks
-            return false;
+    public byte[] unregisterIndexBlock() {
+        if (this.indirect >= 0) {
+            byte[] var1 = new byte[512];
+            SysLib.rawread(this.indirect, var1);
+            this.indirect = -1;
+            return var1;
+        } else {
+            return null;
         }
-
-        // assigning direct blocks
-        for(int i = 0; i < directSize; i++) {
-            if(this.direct[i] == -1) {
-                this.direct[i] = blockNumber;
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Set blockNumber to a free indirect block pointer
-     * and return true if assigned, false indicating out of space
-     */
-    public boolean setIndirectPointers(short blockNumber) {
-        int offset = 0;
-        // read from the block
-        byte buffer[] = new byte[Disk.blockSize];
-        SysLib.rawread(this.indirect, buffer);
-
-        for(int i =0; i < 256; i++) {
-            // read the offset, convert bytetoshort
-            if(SysLib.bytes2short(buffer, offset) ==  -1) {
-                SysLib.short2bytes(blockNumber, buffer, offset);
-                SysLib.rawwrite(this.indirect, buffer);
-                return true;
-            }
-            offset += 2;
-        }
-        return false; // no more indirect pointers
     }
 }

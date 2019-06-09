@@ -1,6 +1,14 @@
 /**
- * Created by Phuc (Billy) Huynh on 5/31/2019
+ * Created by Phuc (Billy) Huynh on 6/1/09
+ * This class maintains info about the disk as a whole
+ * The first disk block, block 0, is called the SuperBlock. It is used to describe
+ * 1. The number of disk blocks.
+ * 2. The number of inodes.
+ * 3. The block number of the head block of the free list.
+ * It is the OS-managed block. No other info must be recorded in
+ * and no user threads must be able to get access to the superblock
  */
+
 
 public class SuperBlock {
 
@@ -8,24 +16,24 @@ public class SuperBlock {
     private final static short END_OF_LIST = -1;
 
     public int totalBlocks; // the number of disk blocks available on disk
-    public int totalInodes; // the number of inodes
-    public int freeList; 	// the block number of the free list's head
+    public int inodeBlocks; // the number of inodes
+    public int freeList;     // the block number of the free list's head
 
     /**
      * Constructor
      * sets the disk info as a whole If
      * current formatting does not match, reformat
      */
-    public SuperbBlock(int diskSize) {
+    public SuperBlock(int diskSize) {
         // get the per block size from disk (which is 512)
         byte superBlock[] = new byte[Disk.blockSize];
         // read block 0 from disk, and store it into superBlock buff
         SysLib.rawread(0, superBlock);
         // convert the contents in superBlock byte buffer, into ints
         this.totalBlocks = SysLib.bytes2int(superBlock, 0);
-        this.totalInodes = SysLib.bytes2int(superBlock, 4);
+        this.inodeBlocks = SysLib.bytes2int(superBlock, 4);
         this.freeList = SysLib.bytes2int(superBlock, 8);
-        if(this.totalBlocks == diskSize && this.totalInodes > 0 && freeList >=2) {
+        if(this.totalBlocks == diskSize && this.inodeBlocks > 0 && freeList >=2) {
             return;   // disk contents are valid
         }
         else {
@@ -42,7 +50,7 @@ public class SuperBlock {
      * and points to next free block
      */
     public void format(int inodeBlocks) {
-        this.totalInodes = inodeBlocks;
+        this.inodeBlocks = inodeBlocks;
 
         // free list to generalized to any
         if(inodeBlocks % 16 != 0) {
@@ -52,7 +60,7 @@ public class SuperBlock {
             this.freeList = inodeBlocks/16 + 1;
         }
         // intializing an inode object for each inodeblock
-        for(short j =0; j < this.totalInodes; j++) {
+        for(short j =0; j < this.inodeBlocks; j++) {
             Inode inode = new Inode();
             inode.flag = 0;  // SET IT TO UNUSED
             inode.toDisk(j);
@@ -78,7 +86,7 @@ public class SuperBlock {
         byte superBlock[] = new byte[Disk.blockSize];
         // convert and store in buffer using offset
         SysLib.int2bytes(this.totalBlocks, superBlock, 0);
-        SysLib.int2bytes(this.totalInodes, superBlock, 4);
+        SysLib.int2bytes(this.inodeBlocks, superBlock, 4);
         SysLib.int2bytes(this.freeList, superBlock, 8);
         // write to disk
         SysLib.rawwrite(0, superBlock);
@@ -104,7 +112,7 @@ public class SuperBlock {
     /**
      * Enqueue (push) a given block to the free list
      */
-    public boolean returnFreeBlock(int blockNumber) {
+    public boolean returnBlock(int blockNumber) {
         //SysLib.cout(blockNumber + "\n");
         if(blockNumber > -1 && blockNumber < 1000) {
             // set blockNumber's pointer to END OF LIST marker
