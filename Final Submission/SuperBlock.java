@@ -126,7 +126,7 @@ public class SuperBlock {
             return true;
         }
         else {
-            SysLib.cerr("In Superblock.java in returnBlock(): blockNumber is out of range\n");
+            SysLib.cerr("In Superblock.java in returnFreeBlock(): blockNumber is out of range\n");
         }
         return false;
     }
