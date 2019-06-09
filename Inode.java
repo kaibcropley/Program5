@@ -184,13 +184,19 @@ public class Inode {
             }
         }
     }
-
+    
+    /**
+     * Frees a block, returning the data within the block and unregistering the
+     * block.
+     * Return The byte array of data from the block. Returns null if the block
+     * is unregistered.
+     */
     public byte[] unregisterIndexBlock() {
         if (this.indirect >= 0) {
-            byte[] var1 = new byte[512];
-            SysLib.rawread(this.indirect, var1);
+            byte[] newBlock = new byte[Disk.blockSize];
+            SysLib.rawread(this.indirect, newBlock);
             this.indirect = -1;
-            return var1;
+            return newBlock;
         } else {
             return null;
         }
