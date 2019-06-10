@@ -168,7 +168,7 @@ public class Inode {
             this.direct[blockPosition] = blockNumber;
             return 0;
         }
-     else if (this.indirect < 0) {
+        else if (this.indirect < 0) {
             return -3;
         } else {
             byte[] block = new byte[Disk.blockSize];
@@ -184,7 +184,7 @@ public class Inode {
             }
         }
     }
-    
+
     /**
      * Frees a block, returning the data within the block and unregistering the
      * block.

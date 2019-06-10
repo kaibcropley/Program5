@@ -10,13 +10,8 @@ public class FileTable {
     }                             // from the file system
 
 
+    //
     public synchronized FileTableEntry falloc(String filename, String mode) {
-        // Check for incorrect filename input
-//        if (filename == null || filename.isEmpty()) {
-//            return null;
-//        }
-        // Check for incorrect mode input
-
         short iNumber = -1;
         Inode node = null;
         while (true) {
@@ -32,7 +27,7 @@ public class FileTable {
                 if (mode.equals("r")) {
                     if (node.flag != 0 && node.flag != 1) {
                         try {
-                            this.wait();
+                            wait();
                         } catch (InterruptedException e) {
                         }
                         continue;
@@ -48,12 +43,11 @@ public class FileTable {
                     }
 
                     try {
-                        this.wait();
+                        wait();
                     } catch (InterruptedException e) {
                     }
                     continue;
                 }
-
                 node.flag = 2;
                 break;
             }

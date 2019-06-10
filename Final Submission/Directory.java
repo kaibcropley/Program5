@@ -1,3 +1,15 @@
+/*
+
+Created by Kaib Cropley on 6/2/2019
+
+Last updated: 6/8/2019
+By: Kaib Cropley
+
+Directory stores information about currently stored files.
+All files have an index, a size and a file name.
+
+ */
+
 public class Directory {
     private static int maxChars = 30; // max characters of each file name
     private static int intSize = 4;
@@ -20,14 +32,7 @@ public class Directory {
 
     // Receives data[] with directory information from disk and initializes
     // the directory with this instance of data[]
-    // Returns false if data is incorrect, true if directory is initialized
-    ////////////// ^
     public void bytes2directory(byte[] data) {
-        // Check for incorrect input
-//        if (data == null || data.length == 0) {
-//            return false;
-//        }
-
         int offset = 0;
         // Fill size array
         for (int i = 0; i < fsize.length; i++) {
@@ -43,9 +48,7 @@ public class Directory {
     }
 
     // Converts directory to a byte array and returns it
-    // Byte array will be written back to disk
     public byte[] directory2bytes() {
-        ///////////Check array size///////////////
         byte[] dirArr =
                 new byte[fsize.length * intSize + fnames.length * maxChars * 2];
         int offset = 0;
@@ -82,7 +85,6 @@ public class Directory {
     }
 
     // Deallocate the given inode number
-    // The corresponding file will be deleted.
     public boolean ifree(short iNumber) {
        if (fsize[iNumber] > 0) {
            fsize[iNumber] = 0;
