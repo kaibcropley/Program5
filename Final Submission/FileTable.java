@@ -1,3 +1,15 @@
+/*
+Created by Kaib Cropley on 6/2/2019
+
+Last updated: 6/8/2019
+By: Kaib Cropley
+
+FileTable.java maintains the file structure table that is
+shared among all user threads. Can be used to allocate
+new files as well as free files.
+
+ */
+
 import java.util.Vector;
 
 public class FileTable {
@@ -99,7 +111,7 @@ public class FileTable {
         notify();
         return true;
     }
-    
+
     // Returns if the table is empty
     public synchronized boolean fempty() {
         return table.isEmpty();  // return if table is empty

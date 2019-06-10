@@ -1,3 +1,13 @@
+/*
+Created by Kaib Cropley on 6/2/2019
+
+Last updated: 6/2/2019
+By: Kaib Cropley
+
+Simple structure to contain details on a file table entry.
+Was made available from the Program 5 assignment page
+ */
+
 public class FileTableEntry {          // Each table entry should have
     public int seekPtr;                 //    a file seek pointer
     public final Inode inode;           //    a reference to its inode
