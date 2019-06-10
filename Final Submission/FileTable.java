@@ -10,7 +10,8 @@ public class FileTable {
     }                             // from the file system
 
 
-    //
+    // Allocate a new file table entry for this file name and register the new
+    // inode within the directory.
     public synchronized FileTableEntry falloc(String filename, String mode) {
         short iNumber = -1;
         Inode node = null;
@@ -25,6 +26,7 @@ public class FileTable {
             if (iNumber >= 0) {
                 node = new Inode(iNumber);
                 if (mode.equals("r")) {
+                    // Read mode
                     if (node.flag != 0 && node.flag != 1) {
                         try {
                             wait();
@@ -38,7 +40,7 @@ public class FileTable {
 
                 if (node.flag != 0 && node.flag != 3) {
                     if (node.flag == 1 || node.flag == 2) {
-                        node.flag = (short)(node.flag + 3);
+                        node.flag = (short) (node.flag + 3);
                         node.toDisk(iNumber);
                     }
 
@@ -52,6 +54,7 @@ public class FileTable {
                 break;
             }
             if (mode.equals("r")) {
+                // If read only mode stop here
                 return null;
             }
 
@@ -67,6 +70,8 @@ public class FileTable {
         return tblEntry;
     }
 
+    //Receive a file table entry and save the corresponding inode to disk,
+    // free the file table entry. Returns true if entry was found.
     public synchronized boolean ffree(FileTableEntry entry) {
         // Check for null entry being given
         if (entry == null) {
@@ -93,8 +98,9 @@ public class FileTable {
         entry = null;
         notify();
         return true;
-}
-
+    }
+    
+    // Returns if the table is empty
     public synchronized boolean fempty() {
         return table.isEmpty();  // return if table is empty
     }                            // should be called before starting a format
